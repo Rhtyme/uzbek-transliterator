@@ -1224,13 +1224,21 @@ def to_cyrillic(text):
     4. э exception words
     """
     # These compounds must be converted before other letters
+    compounds_zero = {
+        "o'": "o‘", "O'": "O‘",
+        "a'": "aъ", "A'": "Aъ",
+        "g'": "g‘", "G'": "G‘"
+    }
+
     compounds_first = {
         'ch': 'ч', 'Ch': 'Ч', 'CH': 'Ч',
         # this line must come before 's' because it has an 'h'
         'sh': 'ш', 'Sh': 'Ш', 'SH': 'Ш',
         # This line must come before 'yo' because of it's apostrophe
         'yo‘': 'йў', 'Yo‘': 'Йў', 'YO‘': 'ЙЎ',
+        'a’': 'аъ', 'A’': 'Аъ'
     }
+    # a’
     compounds_second = {
         'yo': 'ё', 'Yo': 'Ё', 'YO': 'Ё',
         # 'ts': 'ц', 'Ts': 'Ц', 'TS': 'Ц',  # No need for this, see TS_WORDS
@@ -1289,6 +1297,7 @@ def to_cyrillic(text):
             exception_words_rules[m.group(2)],
             m.group(1)[m.end(2):]
         )
+
     # loop because of python's limit of 100 named groups
     for word in list(TS_WORDS.keys()) + list(E_WORDS.keys()):
         text = re.sub(
@@ -1299,6 +1308,13 @@ def to_cyrillic(text):
         )
 
     # compounds
+
+    text = re.sub(
+        r'(%s)' % '|'.join(compounds_zero.keys()),
+        lambda x: compounds_zero[x.group(1)],
+        text,
+        flags=re.U
+    )
     text = re.sub(
         r'(%s)' % '|'.join(compounds_first.keys()),
         lambda x: compounds_first[x.group(1)],
@@ -1400,6 +1416,7 @@ def transliterate(text, to_variant):
         text = to_latin(text)
 
     return text
+
 
 if __name__ == "__main__":
     """cat input_in_lat.txt | python transliterate.py > output_in_cyr.txt"""
